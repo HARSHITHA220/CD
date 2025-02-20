@@ -1,0 +1,106 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+
+#define MAX_TOKEN_SIZE 100
+
+typedef enum {
+    TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
+    TOKEN_OPERATOR,
+    TOKEN_COMMENT,
+    TOKEN_EOF,
+    TOKEN_INVALID
+} TokenType;
+
+typedef struct {
+    TokenType type;
+    char value[MAX_TOKEN_SIZE];
+} Token;
+
+void skipWhitespace(FILE *file) {
+    char ch;
+    while ((ch = fgetc(file)) != EOF) {
+        if (!isspace(ch)) {
+            ungetc(ch, file);
+            break;
+        }
+    }
+}
+
+Token getNextToken(FILE *file) {
+    Token token;
+    char ch = fgetc(file);
+
+    if (ch == EOF) {
+        token.type = TOKEN_EOF;
+        return token;
+    }
+
+    if (isalpha(ch)) {
+        int i = 0;
+        token.value[i++] = ch;
+        while (isalnum(ch = fgetc(file)) && i < MAX_TOKEN_SIZE - 1) {
+            token.value[i++] = ch;
+        }
+        token.value[i] = '\0';
+        ungetc(ch, file);
+        token.type = TOKEN_IDENTIFIER;
+        return token;
+    }
+
+    if (isdigit(ch)) {
+        int i = 0;
+        token.value[i++] = ch;
+        while (isdigit(ch = fgetc(file)) && i < MAX_TOKEN_SIZE - 1) {
+            token.value[i++] = ch;
+        }
+        token.value[i] = '\0';
+        ungetc(ch, file);
+        token.type = TOKEN_NUMBER;
+        return token;
+    }
+
+    if (ch == '/') {
+        if ((ch = fgetc(file)) == '/') {
+            while ((ch = fgetc(file)) != EOF && ch != '\n');
+            token.type = TOKEN_COMMENT;
+            strcpy(token.value, "Comment skipped");
+            return token;
+        }
+        ungetc(ch, file);
+    }
+
+    if (strchr("+-*/", ch)) {
+        token.type = TOKEN_OPERATOR;
+        token.value[0] = ch;
+        token.value[1] = '\0';
+        return token;
+    }
+
+    token.type = TOKEN_INVALID;
+    token.value[0] = ch;
+    token.value[1] = '\0';
+    return token;
+}
+
+int main() {
+    FILE *file = fopen("input.txt", "r");
+    if (!file) {
+        perror("Could not open file");
+        return EXIT_FAILURE;
+    }
+
+    Token token;
+    do {
+        skipWhitespace(file);
+        token = getNextToken(file);
+        if (token.type != TOKEN_COMMENT && token.type != TOKEN_EOF) {
+            printf("Token: Type=%d, Value=%s\n", token.type, token.value);
+        }
+    } while (token.type != TOKEN_EOF);
+
+    fclose(file);
+    return EXIT_SUCCESS;
+}
