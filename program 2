@@ -1,0 +1,36 @@
+# Lexical Analyzer for Comments in C
+
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+bool isComment(const char *line) {
+    // Trim leading whitespace
+    while (*line == ' ' || *line == '\t') {
+        line++;
+    }
+    // Check for single-line comment
+    if (strncmp(line, "//", 2) == 0) {
+        return true;
+    }
+    // Check for multi-line comment
+    if (strncmp(line, "/*", 2) == 0) {
+        return true;
+    }
+    return false;
+}
+
+int main() {
+    char line[256];
+
+    printf("Enter a line of code: ");
+    fgets(line, sizeof(line), stdin);
+
+    if (isComment(line)) {
+        printf("The line is a comment.\n");
+    } else {
+        printf("The line is not a comment.\n");
+    }
+
+    return 0;
+}
