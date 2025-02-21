@@ -1,0 +1,55 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 10
+#define MAX_PRODUCTIONS 10
+
+char productions[MAX][MAX_PRODUCTIONS];
+char first[MAX][MAX_PRODUCTIONS];
+int n;
+
+void findFirst(char symbol, int index) {
+    for (int i = 0; i < n; i++) {
+        if (productions[i][0] == symbol) {
+            if (productions[i][2] == '#') {
+                first[index][0] = '#';
+                first[index][1] = '\0';
+                return;
+            }
+            for (int j = 2; productions[i][j] != '\0'; j++) {
+                if (productions[i][j] >= 'A' && productions[i][j] <= 'Z') {
+                    findFirst(productions[i][j], index);
+                } else {
+                    first[index][0] = productions[i][j];
+                    first[index][1] = '\0';
+                    return;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    printf("Enter the number of productions: ");
+    scanf("%d", &n);
+    printf("Enter the productions (e.g., A->aB):\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%s", productions[i]);
+    }
+
+    for (int i = 0; i < n; i++) {
+        findFirst(productions[i][0], i);
+    }
+
+    printf("\nFIRST sets:\n");
+    for (int i = 0; i < n; i++) {
+        printf("FIRST(%c) = { ", productions[i][0]);
+        for (int j = 0; first[i][j] != '\0'; j++) {
+            printf("%c ", first[i][j]);
+        }
+        printf("}\n");
+    }
+
+    return 0;
+}
